@@ -1,0 +1,15 @@
+name = "array_compare_leaky"
+description = "Example of using Timely to find timing leakage in Ada's array compare"
+version = "0.1.0-dev"
+
+authors = ["Daniel King"]
+maintainers = ["Daniel King <damaki.gh@gmail.com>"]
+maintainers-logins = ["damaki"]
+
+executables = ["array_compare_leaky"]
+
+[[depends-on]]
+timely = "*"
+
+[[pins]]
+timely = { path = "../.." }

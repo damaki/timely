@@ -1,0 +1,10 @@
+name = "timely"
+description = "A tool for verifying whether some code is constant time"
+version = "0.1.0-dev"
+
+authors = ["Daniel King"]
+maintainers = ["Daniel King <damaki.gh@gmail.com>"]
+maintainers-logins = ["damaki"]
+
+[configuration.variables]
+Arch_Timer = {type = "Enum", values = ["x86_64", "aarch64", "armv7m_dwt", "cortexm_systick", "external_32", "external_64"], default = "x86_64"}
