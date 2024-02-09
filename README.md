@@ -50,6 +50,29 @@ Timely uses these statistical tests to look for timing leakage:
 * [Wilcoxon signed-rank test](https://en.wikipedia.org/wiki/Wilcoxon_signed-rank_test)
 * [Sign test](https://en.wikipedia.org/wiki/Sign_test)
 
+These tests output a "[_p_-value](https://en.wikipedia.org/wiki/P-value)" which
+is the probability that the data from two sets of observations are from the
+same population. Large p-values (close to 1) mean that the samples probably
+have the same distribution, whereas small values (close to 0) mean that they
+probably don't have the same distribution. In our case, low p-values (lower
+than 0.00001 by default) indicate that the timing leakage is present.
+
+Low p-values can also be observed when testing a large data set, so we apply
+the [Bonferroni correction](https://en.wikipedia.org/wiki/Bonferroni_correction)
+when deciding whether the result is statistically significant or not.
+
+The script also attempts to determine whether enough data has been collected
+to _exclude_ the possibility of a timing side channel with degree of confidence.
+The script takes the two most dissimilar input data classes (i.e. the pair with the highest p-value) and
+[bootstraps](https://en.wikipedia.org/wiki/Bootstrapping_(statistics)) a
+[confidence interval](https://en.wikipedia.org/wiki/Confidence_interval)
+(with 95% confidence by default) on their pairwise differences to
+determine the smallest timing leakage that the the data set size should be able
+to detect. A confidence interval smaller than 1 cycle suggests that any timing
+side channel is undetectable and that the code is therefore constant time.
+Confidence intervals larger than 1 cycle indicate that more data is
+needed to exclude the possibility of a timing side channel.
+
 ## Usage
 
 ### Setting up a test harness
@@ -89,17 +112,36 @@ leakage:
 python analyse.py --output-dir=results timings.csv
 ```
 
-See `python analyse.py --help` for details.
+See `python analyse.py --help` for a list of available options.
 
 The script will run the statistical tests (this may take a long time) and
 prints a summary of the results to the standard output. Additional reports
 and graphs are output in the directory specified by `--output-dir`.
 
-Timing leakage is considered to be present when a [_p_-value](https://en.wikipedia.org/wiki/P-value)
+Timing leakage is considered to be present when the
+[_p_-value](https://en.wikipedia.org/wiki/P-value)
 from any statistical test is less than the threshold value set by `--alpha`
-(1e-5 by default), adjusted with the
+(1e-5 by default), adjusted by the
 [Bonferroni correction](https://en.wikipedia.org/wiki/Bonferroni_correction)
 when applicable.
+
+The script also
+[bootstraps](https://en.wikipedia.org/wiki/Bootstrapping_(statistics)) a
+[confidence interval](https://en.wikipedia.org/wiki/Confidence_interval)
+on pairwise differences of two input data classes
+to determine whether there's enough data to exclude the possibility of a timing
+side channel (at 95% confidence by default, use `--conf-level` to set a different
+confidence level). Confidence interval plots are generated in the output directory.
+
+By default, the confidence level is only calculated
+for the two most dissimilar input data classes (i.e. the pair with the lowest
+p-value). To generate the confidence interval for all pairs of classes use the
+`--ci-all-classes` option, but note that this option _significantly_ increases
+the analysis time when there are a several input data classes.
+
+The `--no-ci` option can be used to disable the confidence interval calculations
+entirely. This is useful if you just want a quick analysis to check for obvious
+timing leakage.
 
 ## Crate Configuration Variables
 
